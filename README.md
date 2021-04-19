@@ -11,8 +11,14 @@ To pull changes from remote:
 1. Go into repo directory.
 2. $git pull
 
+To add git tracking to new files:
+
+1. Go into repo directory.
+2. $ git add --all
+
 To push changes to remote:
 
 1. Go into repo directory.
 2. $ git commit -a -m <"message">
 3. $ git push origin <branch>
+
