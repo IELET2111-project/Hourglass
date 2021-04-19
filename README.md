@@ -2,7 +2,7 @@
 
 To clone this repo:
 
-1. Have git installed. I have Git BASH: https://gitforwindows.org/
+1. Have git installed. I use Git BASH: https://gitforwindows.org/
 2. Go into preferred directory. 
 3. $ git clone <URL>
 
