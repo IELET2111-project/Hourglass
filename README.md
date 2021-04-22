@@ -17,3 +17,12 @@
 1. Go into repo directory.
 2. $ git commit -a -m <"message">
 3. $ git push origin <branch>
+
+
+void main() {
+  // Make init-functions that is used here
+  
+  while(1) {
+    // Make functions that is used here
+  }
+}
