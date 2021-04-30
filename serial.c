@@ -72,7 +72,7 @@ void writeString(char* string) {
 }
 
 void readString(char* string) {
-	while (*string)
+	while (*string) {
 		char response = receiveByte();
 		if ((response == 0) || (response == '\r')) {
 			break;
@@ -83,5 +83,3 @@ void readString(char* string) {
 	}
 	*string = 0;                           // NULL termination
 }
-
-
