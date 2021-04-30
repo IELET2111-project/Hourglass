@@ -100,14 +100,14 @@ ISR(ADC_vect){
 		
 	switch (ADMUX)		//Switch-case: leser av verdien til ADMUX når ADC interrupt trigges
 	{
-		case 0x61:		//Dersom ADMUX = 0x61, betyr dette f.eks. temperatursensorpinne. Skriver kode under hva vi ønsker at skal skje
+		case (1 << REFS0)|(1 << ADLAR)|(1 << MUX0):		//Dersom ADMUX = 0x61, betyr dette f.eks. temperatursensorpinne. Skriver kode under hva vi ønsker at skal skje
 			tempVal = 1;
-			ADMUX = 0x63;
+			ADMUX = (1 << REFS0)|(1 << ADLAR)|(1 << MUX0)|(1 << MUX1);
 			break;
 		
-		case 0x63:		//Dersom ADMUX = 0x63, betyr dette at potensiometeret har blitt trigget. Skriver hva vi vil at skal skje.
+		case (1 << REFS0)|(1 << ADLAR)|(1 << MUX0)|(1 << MUX1):		//Dersom ADMUX = 0x63, betyr dette at potensiometeret har blitt trigget. Skriver hva vi vil at skal skje.
 			potVal = 1;
-			ADMUX = 0x61; //Etter hver loop av funksjonen, blir ADMUX togglet slik at ADC leser av den andre pinnen neste gang.
+			ADMUX = (1 << REFS0)|(1 << ADLAR)|(1 << MUX0); //Etter hver loop av funksjonen, blir ADMUX togglet slik at ADC leser av den andre pinnen neste gang.
 			break;
 		default:
 		break;
@@ -121,7 +121,6 @@ ISR(ADC_vect){
 //Usikker på om AV_CC = 1 er riktig for dette formålet.
 //Usikker på om ADPS1 = 1 og ADPS0 = 1 er riktig. Sliter veldig med alt som har med klokker og frekvenser å gjøre. Vet ikke
 //om dette vil føkke til noe med tanke på prescaling og klokkefrekvens osv. 
-//Vet ikke om det er nødvendig med 10 bits og skifting av resultatbits, eller om det holder å bare lese av ett register.
 //Vet ikke om nødvendig med default: break: i switch-case.
 
 
