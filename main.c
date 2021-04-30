@@ -69,8 +69,9 @@ uint16_t readADC(void)
 	ADCSRA |= (1 << ADSC);
 	//Kjører til ADCS-bit er slettet
 	loop_until_bit_is_clear(ADCSRA, ADSC);
-	//leser lavt register før det høye
-	return ADCL | (ADCH<<8); 
+	uint8_t low = ADCL; 
+	uint8_t high = ADCH; 
+	return (high << 8) | low;
 }
 
 
