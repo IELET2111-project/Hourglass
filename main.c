@@ -13,24 +13,24 @@ volatile uint8_t potVal = 0;
 volatile uint8_t tempVal = 0;
 
 //Initialiersing og setup for ADC
-//ADEN = 1 skrur på ADC
+//ADEN = 1 skrur pÃ¥ ADC
 //ADPS1 = 1 og ADPS0 = 1 velger prescaler bits. Her velges division factor lik 8.
-//I tillegg sørger dette for at ADLAR = 1, dvs avlesningen av ADC blir lagret med de 8 MSB i ADCH, og de 2 LSB i ADCL.
-//ADLAR = 1 betyr å venstreskifte resultatbitsene 
+//I tillegg sÃ¸rger dette for at ADLAR = 1, dvs avlesningen av ADC blir lagret med de 8 MSB i ADCH, og de 2 LSB i ADCL.
+//ADLAR = 1 betyr Ã¥ venstreskifte resultatbitsene 
 //MUX0 = 1 velger ADC1 som analog input til ADCen.
 //ADIE = 1 tillater interrupt for ADC.
-//ADCSRB = 0 betyr freerunning mode aktivert. Dette gjør at kommunikasjonen automatisk gjenopptas med en gang en samtale avsluttes.
+//ADCSRB = 0 betyr freerunning mode aktivert. Dette gjÃ¸r at kommunikasjonen automatisk gjenopptas med en gang en samtale avsluttes.
 
 static inline void initADC0(void) {
-	//External voltage AVCC, velger ADC1 som output, og venstreshifter resultatbitsene ved å sette ADLAR til 1 
-	ADMUX |= (1 << 0x61); 
-	//Venstreshifter resultatbitsene ved å sette ADLAR til 1, enabler ADIE (ADC interrupt) 
+	//External voltage AVCC, velger ADC1 som output, og venstreshifter resultatbitsene ved Ã¥ sette ADLAR til 1 
+	ADMUX |= (1 << REFS0)|(1 << ADLAR)|(1 << MUX0); 
+	//Venstreshifter resultatbitsene ved Ã¥ sette ADLAR til 1, enabler ADIE (ADC interrupt) 
 	ADCSRA |= (1 << 0x0B); 
 	//Enable AVC 
 	ADCSRA |= (1 << ADEN); 
 	//Enable free running mode 
 	ADCSRB |= (1 << 0x00); 
-	//Må manuelt starte første ADC-konvertering 
+	//MÃ¥ manuelt starte fÃ¸rste ADC-konvertering 
 	ADCSRA |= (1 << ADSC);
 }
 
@@ -51,7 +51,7 @@ void potFunction() {
 	//Hvis potensiometeret er avlest:
 	if (potVal == 1)
 		{	
-			//Ønsker å starte motoren dersom pot-verdien er over 75% av maksverdi.
+			//Ã˜nsker Ã¥ starte motoren dersom pot-verdien er over 75% av maksverdi.
 			if (ADC >767){
 				
 				//Starte motor
@@ -63,10 +63,23 @@ void potFunction() {
 	
 }
 
+uint16_t readADC(void)
+{
+	//Leser ADC-verdi
+	ADCSRA |= (1 << ADSC);
+	//KjÃ¸rer til ADCS-bit er slettet
+	loop_until_bit_is_clear(ADCSRA, ADSC);
+	//leser lavt register fÃ¸r det hÃ¸ye
+	uint8_t low = ADCL;
+	uint8_t high = ADCH;
+	return (high << 8) | low;
+}
+
+
 
 int main(void)
 {
-	//Kjør init. funksjon
+	//KjÃ¸r init. funksjon
 	initADC0();
 	//Set global interrupt enable bit 
 	sei();
@@ -80,6 +93,7 @@ int main(void)
 		
 	while (1)
 	{	
+		adcValNew = readADC();
 	}
 }
 
@@ -87,9 +101,9 @@ int main(void)
 //Interrupt function. 
 ISR(ADC_vect){
 		
-	switch (ADMUX)		//Switch-case: leser av verdien til ADMUX når ADC interrupt trigges
+	switch (ADMUX)		//Switch-case: leser av verdien til ADMUX nÃ¥r ADC interrupt trigges
 	{
-		case 0x61:		//Dersom ADMUX = 0x61, betyr dette f.eks. temperatursensorpinne. Skriver kode under hva vi ønsker at skal skje
+		case 0x61:		//Dersom ADMUX = 0x61, betyr dette f.eks. temperatursensorpinne. Skriver kode under hva vi Ã¸nsker at skal skje
 			tempVal = 1;
 			ADMUX = 0x63;
 			break;
@@ -101,16 +115,16 @@ ISR(ADC_vect){
 		default:
 		break;
 	}
-	//Hindrer interrupt i å trigges før neste loop i main-løkken.
+	//Hindrer interrupt i Ã¥ trigges fÃ¸r neste loop i main-lÃ¸kken.
 	cli();
 }
 
 
-//Ting jeg kan ha føkket til: 
-//Usikker på om AV_CC = 1 er riktig for dette formålet.
-//Usikker på om ADPS1 = 1 og ADPS0 = 1 er riktig. Sliter veldig med alt som har med klokker og frekvenser å gjøre. Vet ikke
-//om dette vil føkke til noe med tanke på prescaling og klokkefrekvens osv. 
-//Vet ikke om det er nødvendig med 10 bits og skifting av resultatbits, eller om det holder å bare lese av ett register.
-//Vet ikke om nødvendig med default: break: i switch-case.
+//Ting jeg kan ha fÃ¸kket til: 
+//Usikker pÃ¥ om AV_CC = 1 er riktig for dette formÃ¥let.
+//Usikker pÃ¥ om ADPS1 = 1 og ADPS0 = 1 er riktig. Sliter veldig med alt som har med klokker og frekvenser Ã¥ gjÃ¸re. Vet ikke
+//om dette vil fÃ¸kke til noe med tanke pÃ¥ prescaling og klokkefrekvens osv. 
+//Vet ikke om det er nÃ¸dvendig med 10 bits og skifting av resultatbits, eller om det holder Ã¥ bare lese av ett register.
+//Vet ikke om nÃ¸dvendig med default: break: i switch-case.
 
 
