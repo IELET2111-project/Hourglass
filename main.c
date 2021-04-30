@@ -47,21 +47,7 @@ ISR(ADC_vect) {
 			inputChannel = 0; // Change input channel to potentiometer
 			break;
 	}
-<<<<<<< HEAD
 	ADMUX = (ADMUX & 0b11110000) | inputChannel; // Changes input channel
-=======
-	
-}
-
-uint16_t readADC(void)
-{
-	//Leser ADC-verdi
-	ADCSRA |= (1 << ADSC);
-	//Kjører til ADCS-bit er slettet
-	loop_until_bit_is_clear(ADCSRA, ADSC);
-	//leser lavt register før det høye
-	return ADCL | (ADCH<<8); 
->>>>>>> parent of 3ba4fea... Update main.c
 }
 
 /************************************************************************/
