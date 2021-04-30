@@ -3,7 +3,7 @@
  *
  * Created: 19.04.2021 15:09:55
  * Author : espen
- */ 
+ */
 
 #define F_CPU 16000000UL
 #define BAUD  9600UL
