@@ -52,7 +52,7 @@ void potFunction() {
 	if (potVal == 1)
 		{	
 			//Ønsker å starte motoren dersom pot-verdien er over 75% av maksverdi.
-			if (ADC >767){
+			if (adcVal >767){
 				
 				//Starte motor
 				//kode her
@@ -83,14 +83,14 @@ int main(void)
 	initADC0();
 	//Set global interrupt enable bit 
 	sei();
-
-	tempFunction();
-	potFunction();
 	
 		
 	while (1)
 	{	
-		adcValNew = readADC();
+		adcVal = readADC();
+		
+		tempFunction();
+		potFunction();
 	}
 }
 
