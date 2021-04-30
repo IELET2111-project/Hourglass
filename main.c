@@ -25,7 +25,7 @@ static inline void initADC0(void) {
 	//External voltage AVCC, velger ADC1 som output, og venstreshifter resultatbitsene ved å sette ADLAR til 1 
 	ADMUX |= (1 << REFS0)|(1 << ADLAR)|(1 << MUX0); 
 	//Venstreshifter resultatbitsene ved å sette ADLAR til 1, enabler ADIE (ADC interrupt) 
-	ADCSRA |= (1 << 0x0B); 
+	ADCSRA |= (1 << ADIE)|(1 << ADPS1)|(1 << ADPS0); 
 	//Enable AVC 
 	ADCSRA |= (1 << ADEN); 
 	//Enable free running mode 
@@ -83,9 +83,6 @@ int main(void)
 	initADC0();
 	//Set global interrupt enable bit 
 	sei();
-	//Starter avlesning av ADC
-	ADCSRA |= (1 << ADSC); 
-	
 
 	tempFunction();
 	potFunction();
