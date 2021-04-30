@@ -70,9 +70,7 @@ uint16_t readADC(void)
 	//Kjører til ADCS-bit er slettet
 	loop_until_bit_is_clear(ADCSRA, ADSC);
 	//leser lavt register før det høye
-	uint8_t low = ADCL;
-	uint8_t high = ADCH;
-	return (high << 8) | low;
+	return ADCL | (ADCH<<8); 
 }
 
 
@@ -83,6 +81,8 @@ int main(void)
 	initADC0();
 	//Set global interrupt enable bit 
 	sei();
+	
+	uint16_t adcVal;
 	
 		
 	while (1)
