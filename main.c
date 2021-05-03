@@ -13,7 +13,8 @@
 #include <avr/interrupt.h>
 #include "serial.h"
 
-volatile uint16_t inputValue;		// Stores last ADC conversion from the ADC Data Register (0 - 1023)
+volatile uint16_t potVal = 0;
+volatile uint16_t tempVal = 0;		// Stores last ADC conversion from the ADC Data Register (0 - 1023)
 volatile uint8_t inputChannel = 0;	// Stores current analog input channel (ADC0, ADC1...)
 
 /************************************************************************/
@@ -26,7 +27,7 @@ void initADC() {
 	ADCSRA |= (1<<ADPS2) | (1<<ADPS1) | (1<<ADPS1);				// Configure prescaler
 	ADCSRA |= (1<<ADIE);										// Configure interrupt
 	ADMUX |= (0<<REFS1) | (1<<REFS0);							// Set reference to AVCC
-	ADMUX |= (1<<ADLAR);										// Configure left adjusted result
+	ADMUX |= (0<<ADLAR);										// Configure right adjusted result
 	ADMUX |= (0<<MUX3) | (0<<MUX2) | (0<<MUX1) | (0<<MUX0);		// Configure ADC0 as input channel
 }
 
@@ -35,9 +36,11 @@ void initADC() {
 /* Prescaler is set to 256x.                                            */
 /************************************************************************/
 void initTimer() {
+	DDRD |= (1<<DDD6);
 	TCCR0A |= (1<<COM0A1) | (1<<WGM01) | (1<<WGM00);	// Fast PWM, non-inverting
 	TCCR0B |= (1<<CS02);	// Prescale 256x
 }
+
 /************************************************************************/
 /* Interrupt service routine for analog-to-digital converter. ISR is    */
 /* triggered on finished conversion. Saves conversion and toggles input */
@@ -45,14 +48,14 @@ void initTimer() {
 /* inputChannel = !inputChannel; if only ADC0 and ADC1 is used.         */
 /************************************************************************/
 ISR(ADC_vect) {
-	inputValue = ADC;
-	inputChannel = ADMUX & 0b00001111;
 	switch (inputChannel) {
 		case 0:
 			inputChannel = 1; // Change input channel to temperature sensor
+			tempVal = ADC;
 			break;
 		case 1:
 			inputChannel = 0; // Change input channel to potentiometer
+			potVal = ADC;
 			break;
 	}
 	ADMUX = (ADMUX & 0b11110000) | inputChannel; // Changes input channel
@@ -71,13 +74,13 @@ int main(void) {
 		if (!(ADCSRA & (1<<ADSC))) { 	// If conversion is done
  			ADCSRA |= (1<<ADSC); 		// Start new conversion
     	}
-		switch (inputChannel) {
-			case 0:
-				// Pot code
-				break;
-			case 1:
-				// Temp code
-				break;
+		if (potVal > 500) {
+			OCR0A = tempVal/4;
+			writeString("Temperature: ");
+			writeNumber(tempVal/4);
+			writeString("\n");
+		} else {
+			OCR0A = 0;
 		}
 	}
 }

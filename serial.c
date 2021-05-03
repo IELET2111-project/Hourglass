@@ -26,7 +26,7 @@ uint8_t receiveByte() {
 }
 
 void writeNumber(int16_t number) {
-	if (!number) {								// Consider case where number = 0
+	if (number == 0) {								// Consider case where number = 0
 		transmitByte('0');
 		return;
 	}
@@ -35,7 +35,7 @@ void writeNumber(int16_t number) {
 		number *= -1;							// Necessary for ASCII conversion
 	}
 	for (int16_t i = 10000; i >= 1; i /= 10) {
-		if (number/i || !number) {				// Only prints 0 if it is to the right of the most significant digit
+		if (number/i || !number || number<i) {				// Only prints 0 if it is to the right of the most significant digit
 			transmitByte(number/i + '0');
 		}
 		number %= i;
