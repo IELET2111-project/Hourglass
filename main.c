@@ -13,12 +13,12 @@
 #include <avr/interrupt.h>
 #include "serial.h"
 
-volatile uint16_t potVal = 0;
-volatile uint16_t tempVal = 0;		// Stores last ADC conversion from the ADC Data Register (0 - 1023)
-volatile uint8_t inputChannel = 0;	// Stores current analog input channel (ADC0, ADC1...)
+volatile uint16_t potmeter = 0;
+volatile uint16_t temperature = 0;		// Stores last ADC conversion from the ADC Data Register (0 - 1023)
 
 /************************************************************************/
-/* Initialization of analog-to-digital converter. Prescaler is set to:. */
+/* Initialization of analog-to-digital converter. 						*/
+/* Prescaler is set to: 128. 											*/
 /* Interrupts is enabled. Reference voltage is set to AVCC. ADC0 is the */
 /* initial input channel.                                               */
 /************************************************************************/
@@ -44,21 +44,21 @@ void initTimer() {
 /************************************************************************/
 /* Interrupt service routine for analog-to-digital converter. ISR is    */
 /* triggered on finished conversion. Saves conversion and toggles input */
-/* channel. Switch statement can be replaced by:						*/
-/* inputChannel = !inputChannel; if only ADC0 and ADC1 is used.         */
+/* channel.														        */
 /************************************************************************/
 ISR(ADC_vect) {
+	static uint8_t inputChannel = 0;				// Stores current analog input channel (ADC0, ADC1...)
 	switch (inputChannel) {
 		case 0:
-			inputChannel = 1; // Change input channel to temperature sensor
-			tempVal = ADC;
+			inputChannel = 1; 						// Change input channel to temperature sensor
+			temperature = ADC;
 			break;
 		case 1:
-			inputChannel = 0; // Change input channel to potentiometer
-			potVal = ADC;
+			inputChannel = 0; 						// Change input channel to potentiometer
+			potmeter = ADC;
 			break;
 	}
-	ADMUX = (ADMUX & 0b11110000) | inputChannel; // Changes input channel
+	ADMUX = (ADMUX & 0b11110000) | inputChannel; 	// Changes input channel
 }
 
 /************************************************************************/
@@ -69,71 +69,22 @@ int main(void) {
 	initTimer();
 	initSerial();
 	sei();
-
+	uint16_t threshold = 500;
 	while (1) {
 		if (!(ADCSRA & (1<<ADSC))) { 	// If conversion is done
  			ADCSRA |= (1<<ADSC); 		// Start new conversion
     	}
-		if (potVal > 500) {
-			OCR0A = tempVal/4;
+		if (potmeter > threshold) {
+			OCR0A = temperature/4;
 			writeString("Temperature: ");
-			writeNumber(tempVal/4);
-			writeString("\n");
+			writeNumber(temperature/4);
+			writeString("\tChoose new threshold by writing: <number> with NULL termination\n");
 		} else {
 			OCR0A = 0;
 		}
+		if (UCSR0A & (1<<RXC0)) {		// If incoming data
+			threshold = readNumber();
+		}
+
 	}
 }
-
-
-//Ting jeg kan ha føkket til:
-//Usikker på om AV_CC = 1 er riktig for dette formålet.
-//Usikker på om ADPS1 = 1 og ADPS0 = 1 er riktig. Sliter veldig med alt som har med klokker og frekvenser å gjøre. Vet ikke
-//om dette vil føkke til noe med tanke på prescaling og klokkefrekvens osv.
-//Vet ikke om det er nødvendig med 10 bits og skifting av resultatbits, eller om det holder å bare lese av ett register.
-//Vet ikke om nødvendig med default: break: i switch-case.
-
-//Initialiersing og setup for ADC
-//ADEN = 1 skrur på ADC
-//ADPS1 = 1 og ADPS0 = 1 velger prescaler bits. Her velges division factor lik 8.
-//I tillegg sørger dette for at ADLAR = 1, dvs avlesningen av ADC blir lagret med de 8 MSB i ADCH, og de 2 LSB i ADCL.
-//ADLAR = 1 betyr å venstreskifte resultatbitsene
-//MUX0 = 1 velger ADC1 som analog input til ADCen.
-//ADIE = 1 tillater interrupt for ADC.
-//ADCSRB = 0 betyr freerunning mode aktivert. Dette gjør at kommunikasjonen automatisk gjenopptas med en gang en samtale avsluttes.
-
-// static inline void initADC0(void) {
-// 	//External voltage AVCC, velger ADC1 som output, og venstreshifter resultatbitsene ved å sette ADLAR til 1
-// 	ADMUX |= (1 << REFS0)|(1 << ADLAR)|(1 << MUX0);
-// 	//Venstreshifter resultatbitsene ved å sette ADLAR til 1, enabler ADIE (ADC interrupt)
-// 	ADCSRA |= (1 << ADIE)|(1 << ADPS1)|(1 << ADPS0);
-// 	//Enable AVC
-// 	ADCSRA |= (1 << ADEN);
-// 	//Enable free running mode
-// 	ADCSRB |= (1 << 0x00);
-// 	//Må manuelt starte første ADC-konvertering
-// 	ADCSRA |= (1 << ADSC);
-// }
-
-// void tempFunction() {
-// 	//Hvis temperaturen er avlest:
-// 	if (tempVal == 1) {
-// 		//kode her
-// 		//kode her
-// 		tempVal = 0;
-// 	}
-//
-// }
-//
-// void potFunction() {
-// 	//Hvis potensiometeret er avlest:
-// 	if (potVal == 1) {
-// 			//Ønsker å starte motoren dersom pot-verdien er over 75% av maksverdi.
-// 		if (adcVal >767) {
-// 				//Starte motor
-// 				//kode her
-// 				//kode her
-// 		}
-// 		potVal = 0;
-// 	}
-// }

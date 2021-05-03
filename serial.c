@@ -26,16 +26,21 @@ uint8_t receiveByte() {
 }
 
 void writeNumber(int16_t number) {
-	if (number == 0) {								// Consider case where number = 0
+	if (number == 0) {							// Consider case where number = 0
 		transmitByte('0');
+		transmitByte(0);
 		return;
 	}
 	if (number < 0) {							// Case where number is negative
 		transmitByte('-');
 		number *= -1;							// Necessary for ASCII conversion
 	}
+	uint8_t mostSignificantDigitFound = 0;
 	for (int16_t i = 10000; i >= 1; i /= 10) {
-		if (number/i || !number || number<i) {				// Only prints 0 if it is to the right of the most significant digit
+		if (!mostSignificantDigitFound) {
+			mostSignificantDigitFound = number/i;
+		} 
+		if (mostSignificantDigitFound) {		// Only prints 0 if it is to the right of the most significant digit
 			transmitByte(number/i + '0');
 		}
 		number %= i;
@@ -56,11 +61,11 @@ int16_t readNumber() {
 		tens = ones;
 		ones = digit;
 		digit = receiveByte();
-		if (digit == '-') {
+		if (digit == '-') {						// Handle negative numbers
 			sign = -1;
 			digit = '0';
 		}
-	} while (digit != 0);                     /* until type return */ // NULL-termination
+	} while (digit != 0);                      // NULL-termination
 	return sign*(1000*(thousands - '0') + 100*(hundreds - '0') + 10*(tens - '0') + ones - '0');
 }
 

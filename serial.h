@@ -5,8 +5,8 @@
  *  Author: espen
  */
 
-#ifndef USART_H_
-#define USART_H_
+#ifndef serial_h
+#define serial_h
 
 #ifndef F_CPU
 #define F_CPU 16000000UL	// System clock
@@ -56,4 +56,4 @@ void writeString(char* string);
 /************************************************************************/
 void readString(char* string);
 
-#endif /* USART_H_ */
+#endif
