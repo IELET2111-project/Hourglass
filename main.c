@@ -31,6 +31,14 @@ void initADC() {
 }
 
 /************************************************************************/
+/* Initialization of the timer using 8-bit Timer0.                      */
+/* Prescaler is set to 256x.                                            */
+/************************************************************************/
+void initTimer() {
+	TCCR0A |= (1<<COM0A1) | (1<<WGM01) | (1<<WGM00);	// Fast PWM, non-inverting
+	TCCR0B |= (1<<CS02);	// Prescale 256x
+}
+/************************************************************************/
 /* Interrupt service routine for analog-to-digital converter. ISR is    */
 /* triggered on finished conversion. Saves conversion and toggles input */
 /* channel. Switch statement can be replaced by:						*/
@@ -55,6 +63,7 @@ ISR(ADC_vect) {
 /************************************************************************/
 int main(void) {
 	initADC();
+	initTimer();
 	initSerial();
 	sei();
 
